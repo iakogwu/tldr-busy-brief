@@ -1,0 +1,102 @@
+{
+  "name": "TL;DR — Busy Brief",
+  "version": "0.1.0",
+  "description": "Converts long or dense text into concise, structured briefs optimized for fast reading and comprehension.",
+  "author": "TL;DR Labs",
+  "homepage": "https://github.com/iakogwu/tldr-busy-brief",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iakogwu/tldr-busy-brief.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "summarization",
+    "brief",
+    "action items",
+    "meeting notes",
+    "emails",
+    "reports",
+    "productivity",
+    "text analysis"
+  ],
+  "permissions": {
+    "data_access": ["user_text"],
+    "data_storage": "none",
+    "external_requests": ["api.openai.com"]
+  },
+  "scopes": ["summarize_text"],
+  "tools": [
+    {
+      "name": "busy_brief",
+      "description": "Analyze text to extract key summaries, action items, and background context. No input text is stored or logged.",
+      "input_schema": {
+        "type": "object",
+        "required": ["input"],
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "The text content to analyze and summarize",
+            "minLength": 20,
+            "maxLength": 100000,
+            "examples": [
+              "Team meeting tomorrow at 3pm about Q4 project deadline. Need to prepare slides, send agenda to team, and review budget numbers.",
+              "New client requirements received. Must update project timeline, assign developers, and schedule kickoff meeting by Friday."
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Key points and main conclusions (1-3 items)"
+          },
+          "actions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Specific tasks or deadlines that require action"
+          },
+          "background": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Background information or non-essential details"
+          },
+          "tone": {
+            "type": "string",
+            "enum": ["urgent", "normal", "low"],
+            "description": "Overall urgency of the text when clearly indicated"
+          },
+          "action_details": {
+            "type": "array",
+            "description": "Optional people/dates tied to specific actions",
+            "items": {
+              "type": "object",
+              "properties": {
+                "action": { "type": "string" },
+                "people": { "type": "array", "items": { "type": "string" } },
+                "dates": { "type": "array", "items": { "type": "string" } }
+              },
+              "required": ["action"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["summary", "actions", "background"]
+      }
+    }
+  ],
+  "server": {
+    "command": "node",
+    "args": ["dist/server/index.js"],
+    "env": {
+      "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+      "OPENAI_MODEL": "gpt-4o-mini",
+      "PORT": "3333",
+      "MAX_RETRIES": "3",
+      "TIMEOUT_MS": "30000"
+    }
+  }
+}
