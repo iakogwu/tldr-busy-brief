@@ -117,20 +117,86 @@ TL;DR Busy Brief processes text only to generate summaries and extracted actions
 
 Privacy Policy: `PRIVACY.md`
 
+## Testing
+
+### Integration Tests
+```bash
+# Run all tests
+npm test
+
+# Run only integration tests
+npm run test:integration
+```
+
+The test suite includes:
+- **Server integration tests** - API endpoints, validation, error handling
+- **Performance monitoring** - Metrics collection and health checks
+- **Error scenarios** - Invalid inputs, API failures, timeouts
+
+### Test Environment
+Tests use a separate environment configuration (`.env.test.example`) with:
+- Test API key (invalid for real requests)
+- Minimal retries for faster execution
+- Short timeouts
+- Random port assignment
+
+## Performance Monitoring
+
+The application includes built-in performance metrics:
+
+### Health Endpoint Metrics
+```json
+{
+  "status": "healthy",
+  "metrics": {
+    "requestCount": 150,
+    "successRate": 98.7,
+    "averageResponseTime": 1250,
+    "lastRequestTime": "2026-01-15T23:30:00.000Z",
+    "errorsByCode": {
+      "INVALID_API_KEY": 2
+    }
+  }
+}
+```
+
+### Response Headers
+- `X-Response-Time`: Request processing time in milliseconds
+- `X-Request-ID`: Unique request identifier for tracing
+
+### Metrics Tracked
+- **Request count**: Total requests processed
+- **Success rate**: Percentage of successful requests
+- **Response time**: Average processing duration
+- **Error categorization**: Errors grouped by error code
+- **Last request timestamp**: Most recent activity
+
+## Version History
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed version history, migration guides, and release notes.
+
 ## Project structure
 
 ```
 ├── mcp.json              # MCP configuration
 ├── package.json          # Dependencies and scripts
 ├── README.md             # This file
+├── CHANGELOG.md          # Version history and changes
 ├── LICENSE               # MIT license
+├── jest.config.js        # Test configuration
 ├── src/                  # App logic
-│   └── explain.ts        # AI processing logic
+│   ├── explain.ts        # AI processing logic
+│   └── metrics.ts        # Performance monitoring
 ├── server/               # Runtime server entrypoint
 │   ├── index.ts          # Express server
 │   └── explain.ts        # Re-export to src
-├── tsconfig.json         # TypeScript configuration
-└── .env.example          # Environment template
+├── tests/                # Test suite
+│   ├── setup.ts          # Test configuration
+│   └── integration/      # Integration tests
+│       └── server.test.ts
+├── .env.example          # Environment template
+├── .env.test.example     # Test environment template
+└── dist/                 # Compiled TypeScript output
 ```
 
 ## License

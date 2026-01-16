@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import { explain, AppError } from "./explain.js";
+import { performanceMiddleware, metricsCollector } from "../src/metrics.js";
 
 dotenv.config();
 
@@ -9,6 +10,7 @@ const PORT = Number.parseInt(process.env.PORT || "3333", 10) || 3333;
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+app.use(performanceMiddleware);
 
 interface ExplainRequest {
   input: string;
@@ -41,11 +43,19 @@ function validateExplainRequest(req: Request, res: Response, next: NextFunction)
 }
 
 app.get("/health", (req: Request, res: Response) => {
+  const metrics = metricsCollector.getMetrics();
   res.json({
     status: "healthy",
     hasApiKey: Boolean(process.env.OPENAI_API_KEY),
     model: process.env.OPENAI_MODEL || "gpt-4o-mini",
     timestamp: new Date().toISOString(),
+    metrics: {
+      requestCount: metrics.requestCount,
+      successRate: metricsCollector.getSuccessRate(),
+      averageResponseTime: Math.round(metrics.averageResponseTime),
+      lastRequestTime: metrics.lastRequestTime,
+      errorsByCode: metrics.errorsByCode
+    }
   });
 });
 
@@ -76,6 +86,12 @@ app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
 process.on("SIGTERM", () => process.exit(0));
 process.on("SIGINT", () => process.exit(0));
 
-app.listen(PORT, () => {
-  console.log(`TL;DR Busy Brief server running on port ${PORT}`);
-});
+// Export app for testing
+export { app };
+
+// Only start server if this file is run directly
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`TL;DR Busy Brief server running on port ${PORT}`);
+  });
+}
