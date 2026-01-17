@@ -52,7 +52,7 @@
   "tools": [
     {
       "name": "busy_brief",
-      "description": "Turn long workplace content into structured briefs with decisions, risks, and next alignment actions.",
+      "description": "Turn long workplace content into structured briefs with decisions, risks, and next alignment actions. The result MUST be displayed using the 'Busy Brief Widget' (ui://widget/index.html).",
       "input_schema": {
         "type": "object",
         "required": [
