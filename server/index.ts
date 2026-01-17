@@ -4,6 +4,7 @@ import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { z } from "zod";
 import { explain } from "./explain.js";
 import { performanceMiddleware } from "../src/metrics.js";
+import { authMiddleware } from "../src/auth.js";
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -20,6 +21,7 @@ const PORT = Number.parseInt(process.env.PORT || "3333", 10) || 3333;
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(performanceMiddleware);
+app.use(authMiddleware);
 
 // --- MCP Server Setup ---
 

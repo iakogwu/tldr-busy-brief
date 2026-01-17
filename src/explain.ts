@@ -104,7 +104,7 @@ export async function explain(input: string): Promise<{
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const response = await getClient().responses.create(
+      const openAICall = getClient().responses.create(
         {
           model: DEFAULT_MODEL,
           input: [
@@ -163,8 +163,16 @@ ${input}`,
           ],
           text: { format: { type: "text" } },
         },
-        { timeout: timeoutMs }
+        { timeout: timeoutMs + 1000 } // Safety margin for internal SDK timeout
       );
+
+      // Race against our strict internal timeout
+      const response = await Promise.race([
+        openAICall,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new AppError("Internal Timeout", 408, "TIMEOUT")), timeoutMs)
+        )
+      ]);
 
       const raw = response.output_text?.trim() ?? "";
       if (!raw) {
@@ -221,6 +229,21 @@ ${input}`,
       // Pass through known app errors immediately (client-side / configuration)
       if (error instanceof AppError && error.status < 500) {
         throw error;
+      }
+
+      // Timeout handling (Graceful Fallback)
+      if (error instanceof AppError && error.code === "TIMEOUT") {
+        console.warn("Analysis timed out, returning graceful fallback.");
+        return {
+          summary: [
+            "Busy Brief could not complete the full analysis within the time limit (7s).",
+            "Partial clarity is provided without inventing decisions."
+          ],
+          decision_status: "Unknown (Timeout)",
+          next_alignment_actions: [],
+          open_questions: ["Full analysis pending due to timeout."],
+          bottom_line: "A full alignment brief could not be generated at this time. Retrying may provide more detail."
+        };
       }
 
       // OpenAI SDK errors
