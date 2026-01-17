@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TL;DR Busy Brief</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div id="app">
+    <div id="loading">Analyze text to see a brief here...</div>
+
+    <div id="content" style="display: none;">
+      <div class="header">
+        <h2>Summary <span id="tone-badge" class="badge"></span></h2>
+      </div>
+
+      <div class="section card">
+        <ul id="summary-list"></ul>
+      </div>
+
+      <h2>Next Alignment Actions</h2>
+      <div class="section card">
+        <ul id="actions-list"></ul>
+      </div>
+
+      <h2>Top Open Questions</h2>
+      <div class="section">
+        <ul id="background-list" style="font-size: 0.9em; color: gray;"></ul>
+      </div>
+
+      <h2>Bottom Line</h2>
+      <div id="bottom-line-container" class="section card"
+        style="font-weight: 500; font-style: italic; background-color: #f9f9f9; border-left: 4px solid #333;"></div>
+    </div>
+  </div>
+
+  <script>
+    // Skybridge Interaction Logic
+
+    // Skybridge Interaction Logic
+
+    function render(data) {
+      if (!data) return;
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+
+      // Render Summary and Decision Status
+      const summaryList = document.getElementById('summary-list');
+      summaryList.innerHTML = '';
+
+      if (data.decision_status && data.decision_status !== "None") {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>Decision Status:</strong> ${data.decision_status}`;
+        li.style.color = '#333';
+        li.style.marginBottom = '8px';
+        li.style.listStyle = 'none'; // Distinguish it
+        summaryList.appendChild(li);
+      }
+
+      if (data.summary && Array.isArray(data.summary)) {
+        data.summary.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          summaryList.appendChild(li);
+        });
+      }
+
+      // Render Next Alignment Actions
+      const actionsList = document.getElementById('actions-list');
+      actionsList.innerHTML = '';
+      if (data.next_alignment_actions && Array.isArray(data.next_alignment_actions)) {
+        data.next_alignment_actions.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          actionsList.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        li.textContent = "No alignment actions identified.";
+        li.style.color = '#888';
+        li.style.fontStyle = 'italic';
+        actionsList.appendChild(li);
+      }
+
+      // Render Background / Open Questions
+      const bgList = document.getElementById('background-list');
+      bgList.innerHTML = '';
+      // Combine open_questions into background list if present, or just background if I kept it? 
+      // Schema has 'open_questions'. Let's render those.
+      // I am reusing the 'background-list' container for Open Questions to keep UI compact.
+
+      if (data.open_questions && Array.isArray(data.open_questions)) {
+        data.open_questions.forEach(item => {
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>❓</strong> ${item}`;
+          bgList.appendChild(li);
+        });
+      }
+
+      // Render Bottom Line
+      const bottomLineContainer = document.getElementById('bottom-line-container');
+      if (data.bottom_line) {
+        bottomLineContainer.style.display = 'block';
+        bottomLineContainer.textContent = data.bottom_line;
+      } else {
+        bottomLineContainer.style.display = 'none';
+      }
+
+      // Remove Tone Logic (Field removed)
+      const toneBadge = document.getElementById('tone-badge');
+      if (toneBadge) toneBadge.style.display = 'none';
+    }
+
+    // Initialize - Check window.openai
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.openai && window.openai.toolOutput) {
+        console.log("Found toolOutput on load:", window.openai.toolOutput);
+        render(window.openai.toolOutput);
+      } else {
+        console.log("No toolOutput found immediately.");
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -17,6 +17,16 @@ Structured summaries with key points and action items
 - Optionally annotates actions with people and dates when explicitly stated
 - Returns machine-readable JSON for reliable downstream handling
 
+## Signature Output Promise
+
+"TLDR Busy Brief turns long, messy workplace communication—emails, Slack threads, meeting notes, or documents—into a clear, trustworthy snapshot of what matters now: priorities, decisions, risks, and what teams should do next—without inventing certainty."
+
+## Core Principles & Safety
+
+- **Operational Clarity**: Focuses on decisions and actions, not just content density.
+- **Ambiguity Preservation**: Clearly labels what is decided vs. what is assumed.
+- **Hallucination Safety**: *TLDR Busy Brief does not invent decisions, owners, or dates — uncertainty is labeled explicitly.*
+
 ## How ChatGPT uses it
 
 When enabled in ChatGPT, the model calls the `busy_brief` tool with the user’s text. The tool returns structured JSON that ChatGPT can present as a brief summary with clear actions.

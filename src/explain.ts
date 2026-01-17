@@ -91,9 +91,10 @@ const TIMEOUT_MS = Number.parseInt(process.env.TIMEOUT_MS || "30000", 10);
 
 export async function explain(input: string): Promise<{
   summary: string[];
-  actions: string[];
-  background: string[];
-  tone?: string;
+  next_alignment_actions: string[];
+  decision_status: string;
+  open_questions: string[];
+  bottom_line: string;
   action_details?: { action: string; people?: string[]; dates?: string[] }[];
 }> {
   const retries = Number.isFinite(MAX_RETRIES) && MAX_RETRIES > 0 ? MAX_RETRIES : 3;
@@ -109,38 +110,52 @@ export async function explain(input: string): Promise<{
           input: [
             {
               role: "system",
-              content:
-                "You are a text compression engine for busy professionals. No opinions. No advice. No explanations. Output valid JSON only, with the exact keys requested.",
+              content: `You are TLDR Busy Brief, an AI assistant that converts workplace communication into operationally useful briefs.
+
+Your role is to extract what matters for alignment and execution.
+
+Core Principles:
+1. Never invent facts, decisions, owners, or timelines.
+2. If information is unclear, implied, or tentative, label it explicitly.
+3. Clearly distinguish between:
+   - Decisions (explicit or implied)
+   - Assumptions / working agreements
+   - Open questions
+4. Preserve ambiguity when it exists. Clarity > False Confidence.
+5. Prioritize operational signal: "Why this matters", "Current State", "Signals", "Proposed Direction".
+
+Output Format:
+You must output a VALID JSON object (no markdown fencing) with the following structure:
+{
+  "summary": ["String 1", "String 2"...], // Key signals, current state, why this matters.
+  "decision_status": "String", // "Proposed / assumed" | "Converted" | "None" | "Mixed"
+  "next_alignment_actions": ["String 1"...], // Softer planning inputs, not rigid commands.
+  "open_questions": ["String 1"...], // Unresolved questions or risks.
+  "bottom_line": "String", // A single sentence synthesizing the net result.
+  "action_details": [] // As defined below
+}`,
             },
             {
               role: "user",
-              content: `Extract only what matters from the text.
-
-Return EXACTLY this JSON shape (no additional text). Only include optional fields when they are present:
-
+              content: `Analyze the text below.
+              
+Return EXACTLY this JSON shape (no additional text):
 {
   "summary": ["key point 1", "key point 2"],
-  "actions": ["action 1", "action 2"],
-  "background": ["background 1", "background 2"],
-  "tone": "urgent | normal | low" (optional),
-  "action_details": [
-    {
-      "action": "Send revised budget to finance",
-      "people": ["David"],
-      "dates": ["Friday afternoon", "Feb 12"]
-    }
-  ] (optional)
+  "decision_status": "Proposed / assumed unless objections",
+  "next_alignment_actions": ["action 1", "action 2"],
+  "open_questions": ["question 1"],
+  "bottom_line": "Net result sentence.",
+  "action_details": [{"action": "...", "people": ["..."], "dates": ["..."]}]
 }
 
 Rules:
-- summary: 1-3 most important facts or conclusions (strings only)
-- actions: explicit tasks or deadlines only; if none, return []
-- background: non-essential context or metadata
-- tone: overall urgency (urgent | normal | low) only if clear
-- action_details: only for actions where people or dates are explicitly stated in the text
-- action_details.action must match an item in actions
-- never infer names or dates that are not in the text
-- omit people/dates keys when not present
+- summary: Include "Why this matters", "Key Signals", and "Current Status".
+- decision_status: Explicitly label the state of decisions (e.g. "Proposed", "None").
+- next_alignment_actions: Extract implied next steps for alignment. If none, return [].
+- open_questions: Extract risks and questions.
+- bottom_line: One clean synthesis sentence.
+- action_details: extract people/dates for actions if present.
 
 Text to analyze:
 ${input}`,
@@ -159,85 +174,45 @@ ${input}`,
       const jsonCandidate = extractLikelyJson(raw);
       const parsed = safeParseJSON(jsonCandidate);
 
-      if (!validateParsedResponse(parsed)) {
-        throw new AppError(
-          "Model returned an unexpected format",
-          502,
-          "INVALID_MODEL_RESPONSE"
-        );
+      if (!parsed || typeof parsed !== "object") {
+        throw new AppError("Model returned invalid JSON", 502, "INVALID_MODEL_RESPONSE");
       }
 
-      const summary = cleanArray(parsed.summary, 3);
-      const actions = cleanArray(parsed.actions, 10);
-      const background = cleanArray(parsed.background, 10);
-      const tone = typeof parsed.tone === "string" ? parsed.tone.trim().toLowerCase() : "";
+      const summary = cleanArray((parsed as any).summary, 5);
+      const next_alignment_actions = cleanArray((parsed as any).next_alignment_actions, 10);
+      const open_questions = cleanArray((parsed as any).open_questions, 10);
+      const decision_status = isNonEmptyString((parsed as any).decision_status) ? (parsed as any).decision_status.trim() : "None";
+      const bottom_line = isNonEmptyString((parsed as any).bottom_line) ? (parsed as any).bottom_line.trim() : "";
 
-      const actionDetailsRaw = Array.isArray(parsed.action_details) ? parsed.action_details : [];
+      const actionDetailsRaw = Array.isArray((parsed as any).action_details) ? (parsed as any).action_details : [];
       const actionDetails: { action: string; people?: string[]; dates?: string[] }[] = [];
       const inputLower = input.toLowerCase();
 
+      // Simplified mapping for action details
       for (const detail of actionDetailsRaw) {
         if (!detail || typeof detail !== "object") continue;
         const action = typeof (detail as any).action === "string" ? (detail as any).action.trim() : "";
         if (!action) continue;
 
-        const actionLower = action.toLowerCase();
-        const actionIndex = inputLower.indexOf(actionLower);
+        // Only keep details if the action is in next_alignment_actions
+        if (!next_alignment_actions.includes(action)) continue;
 
-        if (actionIndex === -1) {
-          continue;
-        }
+        const people = Array.isArray((detail as any).people) ? cleanArray((detail as any).people, 5) : [];
+        const dates = Array.isArray((detail as any).dates) ? cleanArray((detail as any).dates, 5) : [];
 
-        const isNearAction = (term: string) => {
-          const termLower = term.toLowerCase();
-          let idx = inputLower.indexOf(termLower);
-          while (idx !== -1) {
-            if (Math.abs(idx - actionIndex) <= 200) return true;
-            idx = inputLower.indexOf(termLower, idx + 1);
-          }
-          return false;
-        };
-
-        const people = Array.isArray((detail as any).people)
-          ? cleanArray((detail as any).people, 10).filter((name) => isNearAction(name))
-          : [];
-        const dates = Array.isArray((detail as any).dates)
-          ? cleanArray((detail as any).dates, 10).filter((date) => isNearAction(date))
-          : [];
-
-        const entry: { action: string; people?: string[]; dates?: string[] } = { action };
-
-        if (people.length > 0) entry.people = people;
-        if (dates.length > 0) entry.dates = dates;
-
-        if (entry.people || entry.dates) {
-          actionDetails.push(entry);
-        }
-
-        if (!actions.includes(action) && actions.length < 10) {
-          actions.push(action);
+        if (people.length > 0 || dates.length > 0) {
+          actionDetails.push({ action, people, dates });
         }
       }
 
-      const result: {
-        summary: string[];
-        actions: string[];
-        background: string[];
-        tone?: string;
-        action_details?: { action: string; people?: string[]; dates?: string[] }[];
-      } = {
-        summary: summary.length > 0 ? summary : ["No key points identified"],
-        actions,
-        background,
+      const result = {
+        summary,
+        next_alignment_actions,
+        decision_status,
+        open_questions,
+        bottom_line,
+        action_details: actionDetails.length > 0 ? actionDetails : undefined
       };
-
-      if (tone === "urgent" || tone === "normal" || tone === "low") {
-        result.tone = tone;
-      }
-
-      if (actionDetails.length > 0) {
-        result.action_details = actionDetails;
-      }
 
       return result;
     } catch (error) {

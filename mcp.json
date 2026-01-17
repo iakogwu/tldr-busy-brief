@@ -1,7 +1,7 @@
 {
   "name": "TL;DR — Busy Brief",
-  "version": "0.1.0",
-  "description": "Converts long or dense text into concise, structured briefs optimized for fast reading and comprehension.",
+  "version": "1.0.0",
+  "description": "Turns long, messy workplace content (emails, Slack, docs) into clear briefs highlighting priorities, decisions, risks, and next steps. Preserves ambiguity and avoids inventing facts.",
   "author": "TL;DR Labs",
   "homepage": "https://github.com/iakogwu/tldr-busy-brief",
   "repository": {
@@ -12,36 +12,57 @@
   "keywords": [
     "summarization",
     "brief",
-    "action items",
-    "meeting notes",
-    "emails",
-    "reports",
     "productivity",
     "text analysis"
   ],
   "permissions": {
-    "data_access": ["user_text"],
+    "data_access": [
+      "user_text"
+    ],
     "data_storage": "none",
-    "external_requests": ["api.openai.com"]
+    "external_requests": [
+      "api.openai.com"
+    ]
   },
-  "scopes": ["summarize_text"],
+  "scopes": [
+    "summarize_text"
+  ],
+  "resources": [
+    {
+      "uri": "ui://widget/index.html",
+      "name": "Busy Brief Widget",
+      "mimeType": "text/html+skybridge",
+      "description": "Displays the summary and action items in a structured card.",
+      "_meta": {
+        "openai/widgetPrefersBorder": true,
+        "openai/widgetCSP": {
+          "connect_domains": [
+            "https://*"
+          ],
+          "resource_domains": [
+            "https://fonts.googleapis.com",
+            "https://fonts.gstatic.com"
+          ],
+          "frame_domains": []
+        }
+      }
+    }
+  ],
   "tools": [
     {
       "name": "busy_brief",
       "description": "Analyze text to extract key summaries, action items, and background context. No input text is stored or logged.",
       "input_schema": {
         "type": "object",
-        "required": ["input"],
+        "required": [
+          "input"
+        ],
         "properties": {
           "input": {
             "type": "string",
             "description": "The text content to analyze and summarize",
             "minLength": 20,
-            "maxLength": 100000,
-            "examples": [
-              "Team meeting tomorrow at 3pm about Q4 project deadline. Need to prepare slides, send agenda to team, and review budget numbers.",
-              "New client requirements received. Must update project timeline, assign developers, and schedule kickoff meeting by Friday."
-            ]
+            "maxLength": 100000
           }
         },
         "additionalProperties": false
@@ -51,22 +72,32 @@
         "properties": {
           "summary": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "Key points and main conclusions (1-3 items)"
           },
           "actions": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "Specific tasks or deadlines that require action"
           },
           "background": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "Background information or non-essential details"
           },
           "tone": {
             "type": "string",
-            "enum": ["urgent", "normal", "low"],
+            "enum": [
+              "urgent",
+              "normal",
+              "low"
+            ],
             "description": "Overall urgency of the text when clearly indicated"
           },
           "action_details": {
@@ -75,22 +106,48 @@
             "items": {
               "type": "object",
               "properties": {
-                "action": { "type": "string" },
-                "people": { "type": "array", "items": { "type": "string" } },
-                "dates": { "type": "array", "items": { "type": "string" } }
+                "action": {
+                  "type": "string"
+                },
+                "people": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "dates": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
               },
-              "required": ["action"],
+              "required": [
+                "action"
+              ],
               "additionalProperties": false
             }
           }
         },
-        "required": ["summary", "actions", "background"]
+        "required": [
+          "summary",
+          "actions",
+          "background"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "_meta": {
+        "openai/outputTemplate": "ui://widget/index.html"
       }
     }
   ],
   "server": {
     "command": "node",
-    "args": ["dist/server/index.js"],
+    "args": [
+      "dist/server/index.js"
+    ],
     "env": {
       "OPENAI_API_KEY": "${OPENAI_API_KEY}",
       "OPENAI_MODEL": "gpt-4o-mini",

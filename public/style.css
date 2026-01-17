@@ -1,0 +1,83 @@
+:root {
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --border-color: #e5e5e5;
+  --accent-color: #10a37f;
+  --card-bg: #f9f9f9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #343541;
+    --text-color: #ececf1;
+    --border-color: #565869;
+    --card-bg: #40414f;
+  }
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+h2 {
+  font-size: 1.2rem;
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: var(--accent-color);
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+li:last-child {
+  border-bottom: none;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.badge.urgent {
+  background-color: #ff4d4f;
+  color: white;
+}
+
+.badge.normal {
+  background-color: #1890ff;
+  color: white;
+}
+
+.badge.low {
+  background-color: #52c41a;
+  color: white;
+}
