@@ -76,30 +76,29 @@
             "items": {
               "type": "string"
             },
-            "description": "Key points and main conclusions (1-3 items)"
+            "description": "Key points (Why this matters, Key Signals, Current Status)"
           },
-          "actions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Specific tasks or deadlines that require action"
-          },
-          "background": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Background information or non-essential details"
-          },
-          "tone": {
+          "decision_status": {
             "type": "string",
-            "enum": [
-              "urgent",
-              "normal",
-              "low"
-            ],
-            "description": "Overall urgency of the text when clearly indicated"
+            "description": "Status of decisions (e.g. 'Proposed', 'Converted', 'None')"
+          },
+          "next_alignment_actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Implied next steps for alignment"
+          },
+          "open_questions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Risks and unresolved questions"
+          },
+          "bottom_line": {
+            "type": "string",
+            "description": "A single synthesis sentence"
           },
           "action_details": {
             "type": "array",
@@ -132,8 +131,10 @@
         },
         "required": [
           "summary",
-          "actions",
-          "background"
+          "decision_status",
+          "next_alignment_actions",
+          "open_questions",
+          "bottom_line"
         ]
       },
       "annotations": {
