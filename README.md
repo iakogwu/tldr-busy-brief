@@ -1,218 +1,124 @@
-# TL;DR Busy Brief (v0.1.0)
+# Busy Brief
 
-tldr-busy-brief is a lightweight summarization tool that converts long or dense text into concise, structured briefs designed for fast reading and decision-making.
+> **Turn long work conversations into clear decisions, risks, and next steps — fast.**
 
-The tool is built for time-constrained users who need to quickly understand essential information without reading full-length content. It focuses on clarity, structure, and relevance rather than exhaustive detail.
+Busy Brief turns long, messy workplace content — emails, Slack threads, meeting notes, and documents — into clear, structured briefs that help teams align quickly.
 
-Typical use cases include summarizing articles, reports, emails, meeting notes, and other long-form text into short, readable briefs that surface key points at a glance.
+Unlike generic summarization tools, Busy Brief focuses on **operational clarity**, surfacing what actually matters:
 
-## Subtitle
+*   **Why this matters right now**
+*   **Key priorities and signals**
+*   **Decisions** (including implied or tentative ones)
+*   **Risks, dependencies, and open questions**
+*   **Next alignment actions** — without inventing certainty
 
-Structured summaries with key points and action items
+It explicitly preserves ambiguity when it exists and avoids inventing owners, dates, or urgency.
 
-## What it does
+---
 
-- Extracts key facts into a short summary
-- Separates action items from background context
-- Optionally annotates actions with people and dates when explicitly stated
-- Returns machine-readable JSON for reliable downstream handling
+## 🚀 Canonical Demo
 
-## Signature Output Promise
+To see exactly how Busy Brief handles ambiguity and implied decisions, try this example input (a combined Slack thread + meeting notes):
 
-"TLDR Busy Brief turns long, messy workplace communication—emails, Slack threads, meeting notes, or documents—into a clear, trustworthy snapshot of what matters now: priorities, decisions, risks, and what teams should do next—without inventing certainty."
+```text
+Slack thread (Monday):
 
-## Core Principles & Safety
+Alex:
+We should probably lock scope for the May release soon. QA is already stretched.
 
-- **Operational Clarity**: Focuses on decisions and actions, not just content density.
-- **Ambiguity Preservation**: Clearly labels what is decided vs. what is assumed.
-- **Hallucination Safety**: *TLDR Busy Brief does not invent decisions, owners, or dates — uncertainty is labeled explicitly.*
+Priya:
+Design for permissions cleanup is basically done — final tweaks today or tomorrow.
 
-## How ChatGPT uses it
+Sam:
+Engineering can hit May 20 if we don’t add anything net-new. Permissions refactor is the big unknown.
 
-When enabled in ChatGPT, the model calls the `busy_brief` tool with the user’s text. The tool returns structured JSON that ChatGPT can present as a brief summary with clear actions.
+Alex:
+Let’s discuss in tomorrow’s sync.
 
-## App Directory Description
+Meeting notes (Tuesday sync):
 
-TL;DR Busy Brief helps users quickly distill long or complex text into concise, structured summaries. It is designed for fast comprehension, enabling busy users to extract key information and make decisions without reading full documents.
+- General agreement that timeline risk has increased due to permissions refactor.
+- Discussion around whether to include advanced role templates in the May release.
+- Engineering noted that adding role templates would likely push QA past May 20.
+- Product said role templates are valuable but not strictly required.
+- No explicit decision was called out.
 
-## Versioning
+Follow-up doc excerpt:
 
-- v0.1.0 — initial submission
-- v0.1.1 — fixes
-- v0.2.0 — new tools
-
-## Installation
-
-### Prerequisites
-
-- Node.js 18+
-- OpenAI API key
-
-### Setup
-
-```bash
-npm install
-cp .env.example .env
+“Given current resourcing and the importance of hitting the May release window, the proposal is to focus this release on stabilizing permissions behavior and defer advanced role templates to a later iteration.”
 ```
 
-Set `OPENAI_API_KEY` in `.env`:
-```env
-OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL=gpt-4o-mini
-PORT=3333
-MAX_RETRIES=3
-TIMEOUT_MS=30000
-```
+### Expected Output
+Notice how it captures the *implied* decision status and *open questions* without forcing a "Task" list.
 
-Build and run:
-```bash
-npm run build
-npm start
-```
-
-## Example tool calls
-
-### Tool: `busy_brief`
-
-**Input**
-```json
-{
-  "input": "Team meeting tomorrow at 3pm about Q4 project deadline. Alex will send the agenda by tomorrow 3pm. Need to prepare slides and review budget numbers before the call."
-}
-```
-
-**Output**
 ```json
 {
   "summary": [
-    "Team meeting scheduled for tomorrow at 3pm",
-    "Focus on Q4 project deadline discussion"
+    "Timeline risk for the May release has increased due to the permissions refactor.",
+    "Scope decisions need to be finalized now to protect QA capacity and meet Marketing lead-time requirements.",
+    "Engineering can meet May 20 deadline only if no new features are added."
   ],
-  "actions": [
-    "Prepare presentation slides",
-    "Send meeting agenda to team",
-    "Review budget numbers"
+  "decision_status": "Proposed / assumed unless objections",
+  "next_alignment_actions": [
+    "Align on final scope for the May release.",
+    "Resolve open questions in the April 25 sync.",
+    "Confirm GA timing to support Marketing planning."
   ],
-  "background": [
-    "Meeting time confirmation",
-    "General project context"
+  "open_questions": [
+    "Is May 20 still a realistic GA date, or should we plan for late May?",
+    "Does deferring role templates impact any committed customer timelines?"
   ],
-  "tone": "urgent",
-  "action_details": [
-    {
-      "action": "Send meeting agenda to team",
-      "people": ["Alex"],
-      "dates": ["tomorrow 3pm"]
-    }
-  ]
+  "bottom_line": "Teams are converging on a stability-first May release, proposing to defer advanced role templates to mitigate risk."
 }
 ```
 
-Optional fields like `tone` and `action_details` are omitted when they do not apply.
+---
 
-## App Directory Description
+## 🛡️ Why Busy Brief is Different (Reviewer Note)
 
-TL;DR Busy Brief helps users distill long or complex text into concise, structured summaries. It highlights key points, extracts action items, and separates background information for faster reading and understanding.
+Busy Brief is **not** a generic summarization tool. It is designed to help users quickly align on what matters in long or messy workplace content by surfacing priorities, decisions, risks, and open questions.
 
-## Privacy & Data Handling
+Unlike traditional TLDR apps, Busy Brief:
+1.  **Preserves Uncertainty**: Explicitly labels proposed vs. confirmed decisions.
+2.  **Avoids Hallucination**: Never invents owners, dates, urgency, or sentiment.
+3.  **Focuses on Alignment**: Does not assign tasks or manage projects; it provides neutral briefs for safe decision-making.
 
-TL;DR Busy Brief processes text only to generate summaries and extracted actions.
+---
 
-- **Data accessed**: Only the text provided to the tool by the user.
-- **Data stored**: None by this app.
-- **External data sent**: The input text is sent to the OpenAI API for processing.
-- **Data retention**: Not stored by this app. OpenAI’s retention policies apply to API calls.
-- **Logging**: Minimal operational logs (errors and status). No user content is persisted.
-- **Revoking access**: Remove or rotate your `OPENAI_API_KEY`, or disable the app in ChatGPT.
+## 🛠️ Usage
 
-Privacy Policy: `PRIVACY.md`
+This app exposes a single tool: `busy_brief`.
 
-## Testing
+**Example Prompt:**
+> "Review this Slack thread and tell me the decision status and next risks."
 
-### Integration Tests
-```bash
-# Run all tests
-npm test
+It returns a JSON structure used to render the **Busy Brief Card** UI.
 
-# Run only integration tests
-npm run test:integration
-```
+---
 
-The test suite includes:
-- **Server integration tests** - API endpoints, validation, error handling
-- **Performance monitoring** - Metrics collection and health checks
-- **Error scenarios** - Invalid inputs, API failures, timeouts
+## 📦 Installation
 
-### Test Environment
-Tests use a separate environment configuration (`.env.test.example`) with:
-- Test API key (invalid for real requests)
-- Minimal retries for faster execution
-- Short timeouts
-- Random port assignment
+To run this MCP server locally:
 
-## Performance Monitoring
+1.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+2.  **Set Environment Variables**:
+    Create a `.env` file with `OPENAI_API_KEY`.
+3.  **Build and Start**:
+    ```bash
+    npm run build
+    npm start
+    ```
+    The server runs on port `3333`.
 
-The application includes built-in performance metrics:
+## 🔒 Security
 
-### Health Endpoint Metrics
-```json
-{
-  "status": "healthy",
-  "metrics": {
-    "requestCount": 150,
-    "successRate": 98.7,
-    "averageResponseTime": 1250,
-    "lastRequestTime": "2026-01-15T23:30:00.000Z",
-    "errorsByCode": {
-      "INVALID_API_KEY": 2
-    }
-  }
-}
-```
+*   **No Data Storage**: Input text is processed statelessly and never stored.
+*   **Privacy First**: No logs of user content.
+*   **Safe Execution**: Read-only tools.
 
-### Response Headers
-- `X-Response-Time`: Request processing time in milliseconds
-- `X-Request-ID`: Unique request identifier for tracing
+# License
 
-### Metrics Tracked
-- **Request count**: Total requests processed
-- **Success rate**: Percentage of successful requests
-- **Response time**: Average processing duration
-- **Error categorization**: Errors grouped by error code
-- **Last request timestamp**: Most recent activity
-
-## Version History
-
-See [CHANGELOG.md](CHANGELOG.md) for detailed version history, migration guides, and release notes.
-
-## Project structure
-
-```
-├── mcp.json              # MCP configuration
-├── package.json          # Dependencies and scripts
-├── README.md             # This file
-├── CHANGELOG.md          # Version history and changes
-├── LICENSE               # MIT license
-├── jest.config.js        # Test configuration
-├── src/                  # App logic
-│   ├── explain.ts        # AI processing logic
-│   └── metrics.ts        # Performance monitoring
-├── server/               # Runtime server entrypoint
-│   ├── index.ts          # Express server
-│   └── explain.ts        # Re-export to src
-├── tests/                # Test suite
-│   ├── setup.ts          # Test configuration
-│   └── integration/      # Integration tests
-│       └── server.test.ts
-├── .env.example          # Environment template
-├── .env.test.example     # Test environment template
-└── dist/                 # Compiled TypeScript output
-```
-
-## License
-
-MIT License - see `LICENSE`.
-
-## Support
-
-GitHub: `https://github.com/iakogwu/tldr-busy-brief`
+MIT

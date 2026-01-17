@@ -24,7 +24,7 @@ app.use(performanceMiddleware);
 // --- MCP Server Setup ---
 
 const mcpServer = new McpServer({
-  name: "TL;DR Busy Brief",
+  name: "Busy Brief",
   version: "1.0.0"
 });
 

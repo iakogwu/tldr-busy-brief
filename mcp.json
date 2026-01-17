@@ -1,7 +1,7 @@
 {
-  "name": "TL;DR — Busy Brief",
+  "name": "Busy Brief",
   "version": "1.0.0",
-  "description": "Turns long, messy workplace content (emails, Slack, docs) into clear briefs highlighting priorities, decisions, risks, and next steps. Preserves ambiguity and avoids inventing facts.",
+  "description": "Turn long work conversations into clear decisions, risks, and next steps — fast.",
   "author": "TL;DR Labs",
   "homepage": "https://github.com/iakogwu/tldr-busy-brief",
   "repository": {
@@ -13,7 +13,8 @@
     "summarization",
     "brief",
     "productivity",
-    "text analysis"
+    "text analysis",
+    "alignment"
   ],
   "permissions": {
     "data_access": [
@@ -51,7 +52,7 @@
   "tools": [
     {
       "name": "busy_brief",
-      "description": "Analyze text to extract key summaries, action items, and background context. No input text is stored or logged.",
+      "description": "Turn long workplace content into structured briefs with decisions, risks, and next alignment actions.",
       "input_schema": {
         "type": "object",
         "required": [

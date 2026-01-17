@@ -110,7 +110,7 @@ export async function explain(input: string): Promise<{
           input: [
             {
               role: "system",
-              content: `You are TLDR Busy Brief, an AI assistant that converts workplace communication into operationally useful briefs.
+              content: `You are Busy Brief, an AI assistant that converts workplace communication into operationally useful briefs.
 
 Your role is to extract what matters for alignment and execution.
 

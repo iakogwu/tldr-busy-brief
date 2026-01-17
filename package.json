@@ -1,6 +1,6 @@
 {
-  "name": "tldr-busy-brief-v1.5",
-  "version": "0.1.0",
+  "name": "busy-brief",
+  "version": "1.0.0",
   "type": "module",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.2",
