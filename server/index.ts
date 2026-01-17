@@ -59,7 +59,9 @@ mcpServer.resource(
       // If running in server/, ../public/index.html
       // Safer to rely on process.cwd() or specific resolution. 
       // Assuming process.cwd() is the project root.
-      const widgetPath = join(process.cwd(), "public", "index.html");
+      // Robust path resolution relative to this file (dist/server/index.js)
+      // We want to reach <root>/public/index.html
+      const widgetPath = join(__dirname, "../../public/index.html");
       const content = readFileSync(widgetPath, "utf-8");
 
       return {
